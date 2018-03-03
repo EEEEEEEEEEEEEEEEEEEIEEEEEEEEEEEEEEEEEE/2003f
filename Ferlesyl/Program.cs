@@ -6,10 +6,22 @@ using System.Threading.Tasks;
 
 namespace Ferlesyl
 {
+    using Core;
+
     class Program
     {
         static void Main(string[] args)
         {
+            if (args.Length == 0)
+            {
+                Console.WriteLine("x86emu filename");
+                Environment.Exit(1);
+            }
+
+            Emulator emulator = new Emulator();
+            emulator.Read(args[0]);
+
+            emulator.Run();
         }
     }
 }
