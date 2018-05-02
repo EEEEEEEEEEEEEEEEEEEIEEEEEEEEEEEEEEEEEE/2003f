@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ferlesyl.Core
+namespace LkCommon
 {
-    enum Register
+    public enum Register
     {
         F0 = 0,
         F1 = 1,

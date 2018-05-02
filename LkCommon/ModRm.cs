@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ferlesyl.Core
+namespace LkCommon
 {
-    class ModRm
+    public class ModRm
     {
         byte reg;
         byte mode;

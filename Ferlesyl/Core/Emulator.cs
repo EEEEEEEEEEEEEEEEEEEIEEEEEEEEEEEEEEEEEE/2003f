@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using LkCommon;
 
 namespace Ferlesyl.Core
 {
@@ -15,22 +13,22 @@ namespace Ferlesyl.Core
         /// <summary>
         /// レジスタ数
         /// </summary>
-        private const int REGISTER_COUNT = 8;
+        private static readonly int REGISTER_COUNT = LkConstant.REGISTER_COUNT;
 
         /// <summary>
         /// 2003fのF5レジスタのデフォルト値
         /// </summary>
-        private const uint DEFAULT_INITIAL_F5 = 0x6D7AA0F8U;
+        private static readonly uint DEFAULT_INITIAL_F5 = LkConstant.DEFAULT_INITIAL_F5;
 
         /// <summary>
         /// 2003fのNXレジスタのデフォルト値
         /// </summary>
-        private const uint DEFAULT_INITIAL_NX = 0x14830000U;
+        private static readonly uint DEFAULT_INITIAL_NX = LkConstant.DEFAULT_INITIAL_NX;
 
         /// <summary>
         /// アプリケーションのリターンアドレス
         /// </summary>
-        private const uint DEFAULT_RETURN_ADDRESS = 0xBDA574B8U;
+        private static readonly uint DEFAULT_RETURN_ADDRESS = LkConstant.DEFAULT_RETURN_ADDRESS;
 
         #endregion
 
@@ -74,7 +72,6 @@ namespace Ferlesyl.Core
         {
             this.memory = new Memory();
             this.flags = false;
-            //this.nx = DEFAULT_INITIAL_NX;
 
             this.registers = new Dictionary<Register, uint>
             {

@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ferlesyl", "Ferlesyl\Ferlesyl.csproj", "{0D973587-96A0-472E-8732-DF792DE0327E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ladirvirelyl", "Ladirvirelyl\Ladirvirelyl.csproj", "{47CEC934-D32C-4B82-B1CC-85F8DA461A33}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LkCommon", "LkCommon\LkCommon.csproj", "{CFECFB92-F68C-40B6-8019-F6BF6EA8DF11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{0D973587-96A0-472E-8732-DF792DE0327E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D973587-96A0-472E-8732-DF792DE0327E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D973587-96A0-472E-8732-DF792DE0327E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47CEC934-D32C-4B82-B1CC-85F8DA461A33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47CEC934-D32C-4B82-B1CC-85F8DA461A33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47CEC934-D32C-4B82-B1CC-85F8DA461A33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47CEC934-D32C-4B82-B1CC-85F8DA461A33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFECFB92-F68C-40B6-8019-F6BF6EA8DF11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFECFB92-F68C-40B6-8019-F6BF6EA8DF11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFECFB92-F68C-40B6-8019-F6BF6EA8DF11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFECFB92-F68C-40B6-8019-F6BF6EA8DF11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
