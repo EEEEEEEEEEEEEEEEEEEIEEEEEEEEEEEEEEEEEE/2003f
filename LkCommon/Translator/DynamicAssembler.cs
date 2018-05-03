@@ -73,9 +73,19 @@ namespace LkCommon.Translator
             }
         }
 
-        public Operand Seti(Operand val)
+        protected Operand Seti(Operand opd)
         {
-            return val.ToAddressing();
+            return opd.ToAddressing();
+        }
+
+        protected Operand ToOperand(uint val)
+        {
+            return new Operand(val);
+        }
+
+        protected Operand ToOperand(string label, bool address = true)
+        {
+            return new Operand(label);
         }
 
         #region GeneratingMethod
@@ -97,16 +107,16 @@ namespace LkCommon.Translator
             }
 
             Code code = new Code();
-            Console.WriteLine("{0:X4}: {2:X2} {1}", count, mne, (byte)mne);
-            
+            Console.WriteLine("{0:X4}: {1:X2} {2} {3} {4} {5}", count, (byte)mne, mne, opd1, opd2, opd3);
+
             if (!IsFi() && (opd2.IsLabel || opd2.IsImm))
             {
-                throw new ArgumentException();
+                throw new ArgumentException($"Invalid Argument: {opd2}");
             }
 
             if (opd3 != null && (opd3.IsLabel || opd3.IsImm))
             {
-                throw new ArgumentException();
+                throw new ArgumentException($"Invalid Argument: {opd3}");
             }
             code.Mnemonic = mne;
 

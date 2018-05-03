@@ -50,7 +50,7 @@ namespace LkCommon.Translator
         internal Operand(Register reg, bool address = false) : this(reg, null, null, null, address) { }
         internal Operand(Register reg, uint val, bool address = false) : this(reg, null, val, null, address) { }
         internal Operand(Register reg, Register second, bool address = false) : this(reg, second, null, null, address) { }
-        internal Operand(string label, bool address, uint val = 0) : this(null, null, val, label, address) { }
+        internal Operand(string label, bool address = true, uint val = 0) : this(null, null, val, label, address) { }
 
         internal Operand ToAddressing()
         {
@@ -94,12 +94,47 @@ namespace LkCommon.Translator
         }
 
         public static Operand operator+(Operand left, uint disp) {
-            return left + new Operand(null, null, disp, null);
+            return new Operand(left.Reg.Value, disp);
         }
 
-        public static Operand operator +(uint disp, Operand right)
+        public static Operand operator+(uint disp, Operand right)
         {
-            return right + new Operand(null, null, disp, null);
+            return new Operand(right.Reg.Value, disp);
         }
+
+        public override string ToString()
+        {
+            StringBuilder buffer = new StringBuilder();
+
+            if (Reg.HasValue)
+            {
+                buffer.Append(Reg.Value);
+
+                if (SecondReg.HasValue)
+                {
+                    buffer.Append("+").Append(SecondReg);
+                }
+                else if (Disp.HasValue)
+                {
+                    buffer.Append("+").Append(Disp);
+                }
+            }
+            else if (IsLabel)
+            {
+                buffer.Append(Label);
+            }
+            else if (Disp.HasValue)
+            {
+                buffer.Append(Disp.Value);
+            }
+
+            if (IsAddress && !IsLabel)
+            {
+                buffer.Append("@");
+            }
+
+            return buffer.ToString();
+        }
+
     }
 }

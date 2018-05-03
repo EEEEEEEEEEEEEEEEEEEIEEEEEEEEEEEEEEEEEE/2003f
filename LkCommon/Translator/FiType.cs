@@ -2,7 +2,7 @@
 
 namespace LkCommon.Translator
 {
-    public struct FiType
+    public class FiType
     {
         internal Mnemonic mne;
 
