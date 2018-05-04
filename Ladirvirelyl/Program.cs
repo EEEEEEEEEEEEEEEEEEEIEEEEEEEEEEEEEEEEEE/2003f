@@ -13,7 +13,7 @@ namespace Ladirvirelyl
         {
             if (args.Length < 1)
             {
-                Console.WriteLine("Ladirvirelyl fileName... [-o outFileName]");
+                Console.WriteLine("ladirvirelyl.exe fileName... [-o outFileName]");
                 Environment.Exit(0);
             }
 

@@ -14,7 +14,7 @@ namespace Ferlesyl
         {
             if (args.Length == 0)
             {
-                Console.WriteLine("x86emu filename");
+                Console.WriteLine("ferlesyl.exe filename");
                 Environment.Exit(1);
             }
 

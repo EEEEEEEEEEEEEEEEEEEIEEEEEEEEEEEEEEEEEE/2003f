@@ -247,8 +247,7 @@ namespace LkCommon.Translator
         #endregion
 
         #region Operation
-
-
+        
         /// <summary>
         /// 後置ラベルを定義します．
         /// </summary>

@@ -30,6 +30,11 @@ namespace Ferlesyl.Core
         /// </summary>
         private static readonly uint DEFAULT_RETURN_ADDRESS = LkConstant.DEFAULT_RETURN_ADDRESS;
 
+        /// <summary>
+        /// デバッグ用出力アドレス
+        /// </summary>
+        private static readonly uint TVARLON_KNLOAN_ADDRESS = 3126834864;
+
         #endregion
 
         #region Fields
@@ -43,16 +48,16 @@ namespace Ferlesyl.Core
         /// ジャンプフラグ
         /// </summary>
         bool flags;
-
-        /// <summary>
-        /// NXレジスタ
-        /// </summary>
-        //uint nx;
-
+        
         /// <summary>
         /// 汎用レジスタ
         /// </summary>
         readonly IDictionary<Register, uint> registers;
+
+        /// <summary>
+        /// デバッグ用出力バッファ
+        /// </summary>
+        List<string> debugBuffer;
 
         #endregion
 
@@ -68,10 +73,14 @@ namespace Ferlesyl.Core
 
         #endregion
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public Emulator()
         {
             this.memory = new Memory();
             this.flags = false;
+            this.debugBuffer = new List<string>();
 
             this.registers = new Dictionary<Register, uint>
             {
@@ -86,6 +95,10 @@ namespace Ferlesyl.Core
             this.memory.SetValue32(DEFAULT_INITIAL_F5, DEFAULT_RETURN_ADDRESS);
         }
 
+        /// <summary>
+        /// バイナリコードを読み込みます．
+        /// </summary>
+        /// <param name="binary">2003fバイナリデータ</param>
         public void Read(byte[] binary)
         {
             if ((DEFAULT_INITIAL_NX + binary.LongLength) >= (long)uint.MaxValue) {
@@ -99,20 +112,36 @@ namespace Ferlesyl.Core
             }
         }
 
+        /// <summary>
+        /// 指定された名称のファイルパスからバイナリコードを読み込みます．
+        /// </summary>
+        /// <param name="filepath">2003fバイナリデータを保持するファイルのパス</param>
         public void Read(string filepath)
         {
             Read(File.ReadAllBytes(filepath));
         }
 
+        /// <summary>
+        /// 読み込んだバイナリコードを実行します．
+        /// </summary>
         public void Run()
         {
             while (this.registers[Register.XX] != DEFAULT_RETURN_ADDRESS)
             {
+                if (this.registers[Register.XX] == TVARLON_KNLOAN_ADDRESS)
+                {
+                    debugBuffer.Add(this.memory.GetValue32(this.registers[Register.F5] + 4).ToString());
+                    this.registers[Register.XX] = this.memory.GetValue32(this.registers[Register.F5]);
+
+                    continue;
+                }
+
                 byte code = this.memory.GetValue8(this.registers[Register.XX]);
                 Console.WriteLine("nx = {0:X08}, code = {1:X02}", this.registers[Register.XX], code);
 
                 this.registers[Register.XX] += 1;
 
+                #region コード分岐
                 switch (code)
                 {
                     case 0x00:
@@ -188,6 +217,7 @@ namespace Ferlesyl.Core
                         throw new NotImplementedException($"Not Implemented: {code:X}");
                 }
             }
+            #endregion
 
             for (int i = 0; i < this.registers.Count; i++)
             {
@@ -201,105 +231,137 @@ namespace Ferlesyl.Core
             {
                 Console.WriteLine("{0:X08}: {1:X02}", item.Key, item.Value);
             }
+
+            Console.WriteLine("[{0}]", string.Join(",", this.debugBuffer));
         }
 
         #region Operators
 
+        /// <summary>
+        /// ataの処理を行います．
+        /// </summary>
         void Ata()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             uint val = GetValue(second) + GetValue(first);
             SetValue(second, val);
         }
-
+        
+        /// <summary>
+        /// ntaの処理を行います．
+        /// </summary>
         void Nta()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             uint val = GetValue(second) - GetValue(first);
             SetValue(second, val);
         }
 
+        /// <summary>
+        /// adaの処理を行います．
+        /// </summary>
         void Ada()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             uint val = GetValue(second) & GetValue(first);
             SetValue(second, val);
         }
 
+        /// <summary>
+        /// ekcの処理を行います．
+        /// </summary>
         void Ekc()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             uint val = GetValue(second) | GetValue(first);
             SetValue(second, val);
         }
 
+        /// <summary>
+        /// dtoの処理を行います．
+        /// </summary>
         void Dto()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             uint val = GetValue(second) >> (int)GetValue(first);
             SetValue(second, val);
         }
 
+        /// <summary>
+        /// droの処理を行います．
+        /// </summary>
         void Dro()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             uint val = GetValue(second) << (int)GetValue(first);
             SetValue(second, val);
         }
 
+        /// <summary>
+        /// dtosnaの処理を行います．
+        /// </summary>
         void Dtosna()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             uint val = (uint)((int)GetValue(second) >> (int)GetValue(first));
             SetValue(second, val);
         }
 
+        /// <summary>
+        /// dalの処理を行います．
+        /// </summary>
         void Dal()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             uint val = ~(GetValue(second) ^ GetValue(first));
             SetValue(second, val);
         }
 
+        /// <summary>
+        /// krzの処理を行います．
+        /// </summary>
         void Krz()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             uint val = GetValue(first);
             SetValue(second, val);
         }
 
+        /// <summary>
+        /// malkrzの処理を行います．
+        /// </summary>
         void Malkrz()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             if(flags)
             {
@@ -309,102 +371,135 @@ namespace Ferlesyl.Core
             }
         }
 
+        /// <summary>
+        /// fi ~ llonysの処理を行います．
+        /// </summary>
         void Llonys()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             this.flags = GetValue(second) > GetValue(first);
         }
 
+        /// <summary>
+        /// fi ~ xtlonysの処理を行います．
+        /// </summary>
         void Xtlonys()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             this.flags = GetValue(second) <= GetValue(first);
         }
 
+        /// <summary>
+        /// fi ~ xolonysの処理を行います．
+        /// </summary>
         void Xolonys()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             this.flags = GetValue(second) >= GetValue(first);
         }
 
+        /// <summary>
+        /// fi ~ xylonysの処理を行います．
+        /// </summary>
         void Xylonys()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             this.flags = GetValue(second) < GetValue(first);
         }
 
+        /// <summary>
+        /// fi ~ cloの処理を行います．
+        /// </summary>
         void Clo()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             this.flags = GetValue(second) == GetValue(first);
         }
 
+        /// <summary>
+        /// fi ~ nivの処理を行います．
+        /// </summary>
         void Niv()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             this.flags = GetValue(second) != GetValue(first);
         }
 
+        /// <summary>
+        /// fi ~ lloの処理を行います．
+        /// </summary>
         void Llo()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             this.flags = (int)GetValue(second) > (int)GetValue(first);
         }
 
+        /// <summary>
+        /// fi ~ xtloの処理を行います．
+        /// </summary>
         void Xtlo()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             this.flags = (int)GetValue(second) <= (int)GetValue(first);
         }
 
+        /// <summary>
+        /// fi ~ xoloの処理を行います．
+        /// </summary>
         void Xolo()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             this.flags = (int)GetValue(second) >= (int)GetValue(first);
         }
 
+        /// <summary>
+        /// fi ~ xyloの処理を行います．
+        /// </summary>
         void Xylo()
         {
             ModRm first, second;
-            ParseModRm(out first);
-            ParseModRm(out second);
+            GetModRm(out first);
+            GetModRm(out second);
 
             this.flags = (int)GetValue(second) < (int)GetValue(first);
         }
 
+        /// <summary>
+        /// injの処理を行います．
+        /// </summary>
         void Inj()
         {
             ModRm first, second, third;
-            ParseModRm(out first);
-            ParseModRm(out second);
-            ParseModRm(out third);
+            GetModRm(out first);
+            GetModRm(out second);
+            GetModRm(out third);
 
             uint val1 = GetValue(first);
             uint val2 = GetValue(second);
@@ -412,24 +507,30 @@ namespace Ferlesyl.Core
             SetValue(third, val2);
         }
 
+        /// <summary>
+        /// latの処理を行います．
+        /// </summary>
         void Lat()
         {
             ModRm first, second, third;
-            ParseModRm(out first);
-            ParseModRm(out second);
-            ParseModRm(out third);
+            GetModRm(out first);
+            GetModRm(out second);
+            GetModRm(out third);
 
             ulong val1 = (ulong)GetValue(second) * GetValue(first);
             SetValue(second, (uint)(val1 & 0xFFFFFFFFU));
             SetValue(third, (uint)(val1 >> 32));
         }
 
+        /// <summary>
+        /// latsnaの処理を行います．
+        /// </summary>
         void Latsna()
         {
             ModRm first, second, third;
-            ParseModRm(out first);
-            ParseModRm(out second);
-            ParseModRm(out third);
+            GetModRm(out first);
+            GetModRm(out second);
+            GetModRm(out third);
 
             long val1 = (long)GetValue(second) * GetValue(first);
             SetValue(second, (uint)(val1 & 0xFFFFFFFFU));
@@ -440,7 +541,11 @@ namespace Ferlesyl.Core
 
         #region ModRm
 
-        void ParseModRm(out ModRm modrm)
+        /// <summary>
+        /// バイナリデータからModRMを取得します．
+        /// </summary>
+        /// <param name="modrm">ModRM</param>
+        void GetModRm(out ModRm modrm)
         {
             modrm = new ModRm
             {
@@ -476,6 +581,11 @@ namespace Ferlesyl.Core
             }
         }
 
+        /// <summary>
+        /// ModRMを元に値を取得します．
+        /// </summary>
+        /// <param name="modrm">ModRM</param>
+        /// <returns>取得した値</returns>
         uint GetValue(ModRm modrm)
         {
             switch (modrm.Mode)
@@ -508,6 +618,11 @@ namespace Ferlesyl.Core
             }
         }
 
+        /// <summary>
+        /// ModRMを元に値を設定します．
+        /// </summary>
+        /// <param name="modrm">ModRM</param>
+        /// <param name="value">設定する値</param>
         void SetValue(ModRm modrm, uint value)
         {
             switch (modrm.Mode)

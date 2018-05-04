@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace LkCommon.Translator
 {
+    /// <summary>
+    /// DynamicAssemblerの中間表現を保持するためのクラスです．
+    /// </summary>
     class Code
     {
         public Mnemonic Mnemonic { get; set; }

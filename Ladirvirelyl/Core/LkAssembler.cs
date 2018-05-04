@@ -11,6 +11,12 @@ namespace Ladirvirelyl.Core
 {
     class LkAssembler : DynamicAssembler
     {
+        #region Constant
+
+        private const string FASAL_LABEL = "@fasal";
+
+        #endregion
+
         IList<string> inFiles;
         IDictionary<string, bool> kuexok;
 
@@ -22,16 +28,38 @@ namespace Ladirvirelyl.Core
 
         public void Execute(string outFile)
         {
+            List<LkCode> codeList = new List<LkCode>();
             int count = 0;
             
             foreach (var inFile in inFiles)
             {
                 IList<string> wordList = Read(inFile);
-                Analyze(wordList, count++);
+                codeList.AddRange(Analyze(wordList, count++));
             }
 
+            int startCount = codeList.Count(x => x.IsLabel && x.Label == FASAL_LABEL);
+
+            switch(startCount)
+            {
+                case 0:
+                    break;
+                case 1:
+                    codeList.Insert(0, new LkCode
+                    {
+                        Mnemonic = Mnemonic.KRZ,
+                        Head = ToOperand(FASAL_LABEL),
+                        Tail = XX,
+                    });
+                    break;
+                default:
+                    throw new ApplicationException("Found multiple main files");
+            }
+
+            Create(codeList);
             Write(outFile);
         }
+
+        #region 字句解析
 
         private IList<string> Read(string inFile)
         {
@@ -121,27 +149,16 @@ namespace Ladirvirelyl.Core
             return wordList;
         }
 
-        private void Analyze(IList<string> wordList, int v)
+        #endregion
+
+        #region 中間コード化
+        
+        private IList<LkCode> Analyze(IList<string> wordList, int fileCount)
         {
-            bool isMain = false;
+            List<LkCode> codeList = new List<LkCode>();
+            bool isMain = true;
             bool isCI = false;
             
-            (string, string, int) GetParam(int count)
-            {
-                string h, t;
-                if(isCI)
-                {
-                    t = wordList[++count];
-                    h = wordList[++count];
-                }
-                else
-                {
-                    h = wordList[++count];
-                    t = wordList[++count];
-                }
-                return (h, t, count);
-            }
-
             for (int i = 0; i < wordList.Count; i++)
             {
                 var str = wordList[i];
@@ -162,7 +179,11 @@ namespace Ladirvirelyl.Core
                     switch (str)
                     {
                         case "nll":
-                            Nll(wordList[++i]);
+                            codeList.Add(new LkCode
+                            {
+                                LabelType = str,
+                                Label = wordList[++i],
+                            });
 
                             if (wordList[i + 1] == "l'")
                             {
@@ -174,8 +195,12 @@ namespace Ladirvirelyl.Core
                             {
                                 throw new ApplicationException($"Wrong label l'");
                             }
-
-                            L(wordList[++i]);
+                            
+                            codeList.Add(new LkCode
+                            {
+                                LabelType = str,
+                                Label = wordList[++i],
+                            });
                             break;
                         case "kue":
                             label = wordList[++i];
@@ -185,8 +210,7 @@ namespace Ladirvirelyl.Core
                             break;
                         case "xok":
                             label = wordList[++i];
-
-
+                            
                             if (!kuexok.ContainsKey(label))
                             {
                                 kuexok[label] = false;
@@ -194,73 +218,27 @@ namespace Ladirvirelyl.Core
                             break;
                         case "krz":
                         case "kRz":
-                            (head, tail, i) = GetParam(i);
-
-                            Krz(Convert(head), Convert(tail));
-                            break;
                         case "ata":
-                            (head, tail, i) = GetParam(i);
-
-                            Ata(Convert(head), Convert(tail));
-                            break;
                         case "nta":
-                            (head, tail, i) = GetParam(i);
-
-                            Nta(Convert(head), Convert(tail));
-                            break;
                         case "ada":
-                            (head, tail, i) = GetParam(i);
-
-                            Ada(Convert(head), Convert(tail));
-                            break;
                         case "ekc":
-                            (head, tail, i) = GetParam(i);
-
-                            Ekc(Convert(head), Convert(tail));
-                            break;
                         case "dal":
-                            (head, tail, i) = GetParam(i);
-                            
-                            Dal(Convert(head), Convert(tail));
-                            break;
                         case "dto":
-                            (head, tail, i) = GetParam(i);
-
-                            Dto(Convert(head), Convert(tail));
-                            break;
                         case "dtosna":
-                            (head, tail, i) = GetParam(i);
-
-                            Dtosna(Convert(head), Convert(tail));
-                            break;
                         case "dro":
                         case "dRo":
-                            (head, tail, i) = GetParam(i);
-
-                            Dro(Convert(head), Convert(tail));
-                            break;
                         case "malkrz":
                         case "malkRz":
-                            (head, tail, i) = GetParam(i);
-
-                            Malkrz(Convert(head), Convert(tail));
+                            (head, tail, i) = GetParam(wordList, isCI, i);
+                            
+                            codeList.Add(new LkCode
+                            {
+                                Mnemonic = (Mnemonic)Enum.Parse(typeof(Mnemonic), str, true),
+                                Head = Convert(head),
+                                Tail = Convert(tail),
+                            });
                             break;
                         case "lat":
-                            if (isCI)
-                            {
-                                middle = wordList[++i];
-                                tail = wordList[++i];
-                                head = wordList[++i];
-                            }
-                            else
-                            {
-                                head = wordList[++i];
-                                middle = wordList[++i];
-                                tail = wordList[++i];
-                            }
-
-                            Lat(Convert(head), Convert(middle), Convert(tail));
-                            break;
                         case "latsna":
                             if (isCI)
                             {
@@ -275,61 +253,36 @@ namespace Ladirvirelyl.Core
                                 tail = wordList[++i];
                             }
 
-                            Latsna(Convert(head), Convert(middle), Convert(tail));
+                            codeList.Add(new LkCode
+                            {
+                                Mnemonic = (Mnemonic)Enum.Parse(typeof(Mnemonic), str, true),
+                                Head = Convert(head),
+                                Middle = Convert(middle),
+                                Tail = Convert(tail),
+                            });
                             break;
                         case "kak":
                             throw new NotSupportedException("Not Supported 'kak'");
                         case "nac":
-                            Nac(Convert(wordList[++i]));
+                            codeList.Add(new LkCode
+                            {
+                                Mnemonic = Mnemonic.DAL,
+                                Head = ToOperand(0),
+                                Tail = Convert(wordList[++i]),
+                            });
                             break;
                         case "fi":
                             head = wordList[++i];
                             tail = wordList[++i];
                             bool isCompare = Enum.TryParse(wordList[++i].ToUpper(), out Mnemonic mne);
 
-                            if(isCompare)
+                            codeList.Add(new LkCode
                             {
-                                FiType fiType = null;
-
-                                switch(mne)
-                                {
-                                    case Mnemonic.CLO:
-                                        fiType = CLO;
-                                        break;
-                                    case Mnemonic.NIV:
-                                        fiType = NIV;
-                                        break;
-                                    case Mnemonic.LLO:
-                                        fiType = LLO;
-                                        break;
-                                    case Mnemonic.LLONYS:
-                                        fiType = LLONYS;
-                                        break;
-                                    case Mnemonic.XOLO:
-                                        fiType = XOLO;
-                                        break;
-                                    case Mnemonic.XOLONYS:
-                                        fiType = XOLONYS;
-                                        break;
-                                    case Mnemonic.XTLO:
-                                        fiType = XTLO;
-                                        break;
-                                    case Mnemonic.XTLONYS:
-                                        fiType = XTLONYS;
-                                        break;
-                                    case Mnemonic.XYLO:
-                                        fiType = XYLO;
-                                        break;
-                                    case Mnemonic.XYLONYS:
-                                        fiType = XYLONYS;
-                                        break;
-                                    default:
-                                        throw new ApplicationException($"Invalid CompareOperand '{mne}'");
-                                }
-
-                                Fi(Convert(head), Convert(tail), fiType);
-                            }
-
+                                Mnemonic = mne,
+                                Head = Convert(head),
+                                Tail = Convert(tail),
+                            });
+                            
                             break;
                         case "inj":
                             if (isCI)
@@ -345,16 +298,62 @@ namespace Ladirvirelyl.Core
                                 tail = wordList[++i];
                             }
 
-                            Inj(Convert(head), Convert(middle), Convert(tail));
+                            codeList.Add(new LkCode
+                            {
+                                Mnemonic = Mnemonic.INJ,
+                                Head = Convert(head),
+                                Middle = Convert(middle),
+                                Tail = Convert(tail),
+                            });
+
                             break;
                         default:
                             break;
                     }
                 }
             }
+
+            foreach (var item in codeList)
+            {
+                codeList.ForEach(x =>
+                {
+                    if (x.IsLabel && !kuexok.ContainsKey(x.Label))
+                    {
+                        x.Label += "@"+ fileCount;
+                    }
+                });
+            }
+
+            if (isMain)
+            {
+                codeList.Insert(0, new LkCode
+                {
+                    LabelType = "nll",
+                    Label = FASAL_LABEL,
+                });
+            }
+
+            return codeList;
         }
 
-        public Operand Convert(string str)
+        private (string, string, int) GetParam(IList<string> wordList, bool isCI, int count)
+        {
+            string h, t;
+            if (isCI)
+            {
+                t = wordList[++count];
+                h = wordList[++count];
+            }
+            else
+            {
+                h = wordList[++count];
+                t = wordList[++count];
+            }
+            return (h, t, count);
+        }
+
+
+        private Operand Convert(string str)
         {
             Operand ToRegisterOperand(Register reg)
             {
@@ -425,12 +424,10 @@ namespace Ladirvirelyl.Core
 
                 if (succReg1 && succVal2)
                 {
-                    Console.WriteLine("result: {0} {1}", op1, val2);
                     result = op1 + val2;
                 }
                 else if (succReg2 && succVal1)
                 {
-                    Console.WriteLine("result: {0} {1}", val1, op2);
                     result = val1 + op2;
                 }
                 else
@@ -463,5 +460,109 @@ namespace Ladirvirelyl.Core
                 return result;
             }
         }
+
+        #endregion
+
+        #region バイナリ作成
+
+        private void Create(IList<LkCode> codeList)
+        {
+            foreach (var code in codeList)
+            {
+                if(code.IsLabel)
+                {
+                    switch (code.LabelType.ToLower())
+                    {
+                        case "nll":
+                            Nll(code.Label);
+                            break;
+                        case "l'":
+                            L(code.Label);
+                            break;
+                        default:
+                            throw new ApplicationException($"Unknown Value: {code.LabelType}");
+                    }
+                }
+                else
+                {
+                    switch (code.Mnemonic)
+                    {
+                        case Mnemonic.ATA:
+                            Ata(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.NTA:
+                            Nta(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.ADA:
+                            Ada(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.EKC:
+                            Ekc(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.DTO:
+                            Dto(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.DRO:
+                            Dro(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.DTOSNA:
+                            Dtosna(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.DAL:
+                            Dal(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.KRZ:
+                            Krz(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.MALKRZ:
+                            Malkrz(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.LLONYS:
+                            Fi(code.Head, code.Tail, LLONYS);
+                            break;
+                        case Mnemonic.XTLONYS:
+                            Fi(code.Head, code.Tail, XTLONYS);
+                            break;
+                        case Mnemonic.XOLONYS:
+                            Fi(code.Head, code.Tail, XOLONYS);
+                            break;
+                        case Mnemonic.XYLONYS:
+                            Fi(code.Head, code.Tail, XYLONYS);
+                            break;
+                        case Mnemonic.CLO:
+                            Fi(code.Head, code.Tail, CLO);
+                            break;
+                        case Mnemonic.NIV:
+                            Fi(code.Head, code.Tail, NIV);
+                            break;
+                        case Mnemonic.LLO:
+                            Fi(code.Head, code.Tail, LLO);
+                            break;
+                        case Mnemonic.XTLO:
+                            Fi(code.Head, code.Tail, XTLO);
+                            break;
+                        case Mnemonic.XOLO:
+                            Fi(code.Head, code.Tail, XOLO);
+                            break;
+                        case Mnemonic.XYLO:
+                            Fi(code.Head, code.Tail, XYLO);
+                            break;
+                        case Mnemonic.INJ:
+                            Inj(code.Head, code.Middle, code.Tail);
+                            break;
+                        case Mnemonic.LAT:
+                            Lat(code.Head, code.Middle, code.Tail);
+                            break;
+                        case Mnemonic.LATSNA:
+                            Latsna(code.Head, code.Middle, code.Tail);
+                            break;
+                        default:
+                            throw new ApplicationException($"Unknown value: {code}");
+                    }
+                }
+            }
+        }
+
+        #endregion
     }
 }
