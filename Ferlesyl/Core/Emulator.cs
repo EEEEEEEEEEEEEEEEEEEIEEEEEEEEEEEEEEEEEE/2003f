@@ -71,6 +71,16 @@ namespace Ferlesyl.Core
             get => this.memory.Binaries;
         }
 
+        /// <summary>
+        /// メモリの内容を表示するかどうか
+        /// </summary>
+        public bool ViewMemory { get; set; }
+
+        /// <summary>
+        /// レジスタの内容を表示するかどうか
+        /// </summary>
+        public bool ViewRegister { get; set; }
+
         #endregion
 
         /// <summary>
@@ -137,7 +147,7 @@ namespace Ferlesyl.Core
                 }
 
                 byte code = this.memory.GetValue8(this.registers[Register.XX]);
-                Console.WriteLine("nx = {0:X08}, code = {1:X02}", this.registers[Register.XX], code);
+                //Console.WriteLine("nx = {0:X08}, code = {1:X02}", this.registers[Register.XX], code);
 
                 this.registers[Register.XX] += 1;
 
@@ -216,20 +226,26 @@ namespace Ferlesyl.Core
                     default:
                         throw new NotImplementedException($"Not Implemented: {code:X}");
                 }
+                #endregion
             }
-            #endregion
 
-            for (int i = 0; i < this.registers.Count; i++)
+            if (ViewRegister)
             {
-                if (this.registers.ContainsKey((Register)i))
+                for (int i = 0; i < this.registers.Count; i++)
                 {
-                    Console.WriteLine("{0} = {1:X08}", (Register)i, this.registers[(Register)i]);
+                    if (this.registers.ContainsKey((Register)i))
+                    {
+                        Console.WriteLine("{0} = {1:X08}", (Register)i, this.registers[(Register)i]);
+                    }
                 }
             }
 
-            foreach (var item in this.memory.Binaries.OrderBy(x => x.Key))
+            if (ViewMemory)
             {
-                Console.WriteLine("{0:X08}: {1:X02}", item.Key, item.Value);
+                foreach (var item in this.memory.Binaries.OrderBy(x => x.Key))
+                {
+                    Console.WriteLine("{0:X08}: {1:X02}", item.Key, item.Value);
+                }
             }
 
             Console.WriteLine("[{0}]", string.Join(",", this.debugBuffer));

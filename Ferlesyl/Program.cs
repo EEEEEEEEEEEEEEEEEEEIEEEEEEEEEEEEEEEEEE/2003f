@@ -14,12 +14,32 @@ namespace Ferlesyl
         {
             if (args.Length == 0)
             {
-                Console.WriteLine("ferlesyl.exe filename");
+                Console.WriteLine("ferlesyl.exe (option) filename");
+                Console.WriteLine("  --register : Show register of last register value");
+                Console.WriteLine("  --memory   : Show memory of last register value");
                 Environment.Exit(1);
             }
 
             Emulator emulator = new Emulator();
-            emulator.Read(args[0]);
+            string fileName = "";
+
+            foreach (var arg in args)
+            {
+                switch(arg)
+                {
+                    case "--register":
+                        emulator.ViewRegister = true;
+                        break;
+                    case "--memory":
+                        emulator.ViewMemory = true;
+                        break;
+                    default:
+                        fileName = arg;
+                        break;
+                }
+            }
+
+            emulator.Read(fileName);
 
             emulator.Run();
         }
