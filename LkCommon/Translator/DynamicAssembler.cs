@@ -62,7 +62,7 @@ namespace LkCommon.Translator
                             }
                             else
                             {
-                                throw new InvalidOperationException();
+                                throw new InvalidOperationException($"Not found Label: {opd.Label}");
                             }
 
                         }
@@ -107,7 +107,7 @@ namespace LkCommon.Translator
             }
 
             Code code = new Code();
-            Console.WriteLine("{0:X4}: {1:X2} {2} {3} {4} {5}", count, (byte)mne, mne, opd1, opd2, opd3);
+            //Console.WriteLine("{0:X4}: {1:X2} {2} {3} {4} {5}", count, (byte)mne, mne, opd1, opd2, opd3);
 
             if (!IsFi() && (opd2.IsLabel || opd2.IsImm))
             {
@@ -607,7 +607,7 @@ namespace LkCommon.Translator
         /// <param name="opd3">オペランド</param>
         protected void Latsna(Operand opd1, Operand opd2, Operand opd3)
         {
-            Append(Mnemonic.LAT, opd1, opd2, opd3);
+            Append(Mnemonic.LATSNA, opd1, opd2, opd3);
         }
     }
 

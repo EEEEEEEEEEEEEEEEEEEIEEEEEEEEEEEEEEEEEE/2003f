@@ -298,7 +298,17 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            uint val = GetValue(second) >> (int)GetValue(first);
+            int shift = (int)GetValue(first);
+            uint val;
+
+            if (shift >= 32)
+            {
+                val = 0u;
+            }
+            else
+            {
+                val = GetValue(second) >> shift;
+            }
             SetValue(second, val);
         }
 
@@ -311,7 +321,18 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            uint val = GetValue(second) << (int)GetValue(first);
+            int shift = (int)GetValue(first);
+            uint val;
+
+            if (shift >= 32)
+            {
+                val = 0u;
+            }
+            else
+            {
+                val = GetValue(second) << shift;
+            }
+
             SetValue(second, val);
         }
 
@@ -324,7 +345,17 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            uint val = (uint)((int)GetValue(second) >> (int)GetValue(first));
+            int shift = (int)GetValue(first);
+            uint val;
+
+            if (shift >= 32)
+            {
+                val = (uint)((int)GetValue(second) >> 31);
+            }
+            else
+            {
+                val = (uint)((int)GetValue(second) >> shift);
+            }
             SetValue(second, val);
         }
 
@@ -380,7 +411,7 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            this.flags = GetValue(second) > GetValue(first);
+            this.flags = GetValue(first) > GetValue(second);
         }
 
         /// <summary>
@@ -392,7 +423,7 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            this.flags = GetValue(second) <= GetValue(first);
+            this.flags = GetValue(first) <= GetValue(second);
         }
 
         /// <summary>
@@ -404,7 +435,7 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            this.flags = GetValue(second) >= GetValue(first);
+            this.flags = GetValue(first) >= GetValue(second);
         }
 
         /// <summary>
@@ -416,7 +447,7 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            this.flags = GetValue(second) < GetValue(first);
+            this.flags = GetValue(first) < GetValue(second);
         }
 
         /// <summary>
@@ -428,7 +459,7 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            this.flags = GetValue(second) == GetValue(first);
+            this.flags = GetValue(first) == GetValue(second);
         }
 
         /// <summary>
@@ -440,7 +471,7 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            this.flags = GetValue(second) != GetValue(first);
+            this.flags = GetValue(first) != GetValue(second);
         }
 
         /// <summary>
@@ -452,7 +483,7 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            this.flags = (int)GetValue(second) > (int)GetValue(first);
+            this.flags = (int)GetValue(first) > (int)GetValue(second);
         }
 
         /// <summary>
@@ -464,7 +495,7 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            this.flags = (int)GetValue(second) <= (int)GetValue(first);
+            this.flags = (int)GetValue(first) <= (int)GetValue(second);
         }
 
         /// <summary>
@@ -476,7 +507,7 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            this.flags = (int)GetValue(second) >= (int)GetValue(first);
+            this.flags = (int)GetValue(first) >= (int)GetValue(second);
         }
 
         /// <summary>
@@ -488,7 +519,7 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            this.flags = (int)GetValue(second) < (int)GetValue(first);
+            this.flags = (int)GetValue(first) < (int)GetValue(second);
         }
 
         /// <summary>
@@ -518,8 +549,8 @@ namespace Ferlesyl.Core
             GetModRm(out third);
 
             ulong val1 = (ulong)GetValue(second) * GetValue(first);
-            SetValue(second, (uint)(val1 & 0xFFFFFFFFU));
             SetValue(third, (uint)(val1 >> 32));
+            SetValue(second, (uint)(val1 & 0xFFFFFFFFU));
         }
 
         /// <summary>
@@ -532,9 +563,11 @@ namespace Ferlesyl.Core
             GetModRm(out second);
             GetModRm(out third);
 
-            long val1 = (long)GetValue(second) * GetValue(first);
-            SetValue(second, (uint)(val1 & 0xFFFFFFFFU));
+            long val = GetValue(second);
+
+            long val1 = ((val >> 31 == 0 ? 0 : 0xFFFFFFFFL << 32) | val) * (int)GetValue(first);
             SetValue(third, (uint)(val1 >> 32));
+            SetValue(second, (uint)(val1 & 0xFFFFFFFFU));
         }
 
         #endregion

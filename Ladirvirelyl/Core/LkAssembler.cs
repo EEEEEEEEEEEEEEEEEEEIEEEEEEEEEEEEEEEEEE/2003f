@@ -34,6 +34,7 @@ namespace Ladirvirelyl.Core
             foreach (var inFile in inFiles)
             {
                 IList<string> wordList = Read(inFile);
+                AnalyzeLabel(wordList);
                 codeList.AddRange(Analyze(wordList, count++));
             }
 
@@ -54,6 +55,8 @@ namespace Ladirvirelyl.Core
                 default:
                     throw new ApplicationException("Found multiple main files");
             }
+
+            //Console.WriteLine("{0}", string.Join(",\n", codeList));
 
             Create(codeList);
             Write(outFile);
@@ -78,6 +81,13 @@ namespace Ladirvirelyl.Core
                         {
                             wordList.Add(buffer.ToString());
                             buffer.Clear();
+                        }
+                    }
+                    else if (c == ';')
+                    {
+                        while (!reader.EndOfStream && c != '\r' && c != '\n')
+                        {
+                            c = System.Convert.ToChar(reader.Read());
                         }
                     }
                     else if (c == '@')
@@ -151,14 +161,75 @@ namespace Ladirvirelyl.Core
 
         #endregion
 
+        #region ラベル処理
+
+        private void AnalyzeLabel(IList<string> wordList)
+        {
+            for (int i = 0; i < wordList.Count; i++)
+            {
+                var str = wordList[i];
+                
+                string label;
+                switch (str)
+                {
+                    case "nll":
+                    case "l'":
+                        ++i;
+                        break;
+                    case "kue":
+                        label = wordList[++i];
+
+                        kuexok[label] = true;
+                        break;
+                    case "xok":
+                        label = wordList[++i];
+
+                        if (!kuexok.ContainsKey(label))
+                        {
+                            kuexok[label] = false;
+                        }
+                        break;
+                    case "krz":
+                    case "kRz":
+                    case "ata":
+                    case "nta":
+                    case "ada":
+                    case "ekc":
+                    case "dal":
+                    case "dto":
+                    case "dtosna":
+                    case "dro":
+                    case "dRo":
+                    case "malkrz":
+                    case "malkRz":
+                        i += 2;
+                        break;
+                    case "nac":
+                        i++;
+                        break;
+                    case "lat":
+                    case "latsna":
+                    case "fi":
+                    case "inj":
+                        i += 3;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+        }
+
+        #endregion
+
         #region 中間コード化
-        
+
         private IList<LkCode> Analyze(IList<string> wordList, int fileCount)
         {
             List<LkCode> codeList = new List<LkCode>();
             bool isMain = true;
             bool isCI = false;
-            
+
             for (int i = 0; i < wordList.Count; i++)
             {
                 var str = wordList[i];
@@ -179,10 +250,12 @@ namespace Ladirvirelyl.Core
                     switch (str)
                     {
                         case "nll":
+                            label = wordList[++i];
+                            
                             codeList.Add(new LkCode
                             {
                                 LabelType = str,
-                                Label = wordList[++i],
+                                Label = kuexok.ContainsKey(label) ? label : $"{label}@{fileCount}",
                             });
 
                             if (wordList[i + 1] == "l'")
@@ -191,30 +264,25 @@ namespace Ladirvirelyl.Core
                             }
                             break;
                         case "l'":
-                            if(i == 0)
+                            if (i == 0)
                             {
                                 throw new ApplicationException($"Wrong label l'");
                             }
-                            
+
+                            label = wordList[++i];
+
                             codeList.Add(new LkCode
                             {
                                 LabelType = str,
-                                Label = wordList[++i],
+                                Label = kuexok.ContainsKey(label) ? label : $"{label}@{fileCount}",
                             });
                             break;
                         case "kue":
-                            label = wordList[++i];
-
-                            kuexok[label] = true;
+                            ++i;
                             isMain = false;
                             break;
                         case "xok":
-                            label = wordList[++i];
-                            
-                            if (!kuexok.ContainsKey(label))
-                            {
-                                kuexok[label] = false;
-                            }
+                            ++i;
                             break;
                         case "krz":
                         case "kRz":
@@ -230,12 +298,12 @@ namespace Ladirvirelyl.Core
                         case "malkrz":
                         case "malkRz":
                             (head, tail, i) = GetParam(wordList, isCI, i);
-                            
+
                             codeList.Add(new LkCode
                             {
                                 Mnemonic = (Mnemonic)Enum.Parse(typeof(Mnemonic), str, true),
-                                Head = Convert(head),
-                                Tail = Convert(tail),
+                                Head = Convert(head, fileCount),
+                                Tail = Convert(tail, fileCount),
                             });
                             break;
                         case "lat":
@@ -256,9 +324,9 @@ namespace Ladirvirelyl.Core
                             codeList.Add(new LkCode
                             {
                                 Mnemonic = (Mnemonic)Enum.Parse(typeof(Mnemonic), str, true),
-                                Head = Convert(head),
-                                Middle = Convert(middle),
-                                Tail = Convert(tail),
+                                Head = Convert(head, fileCount),
+                                Middle = Convert(middle, fileCount),
+                                Tail = Convert(tail, fileCount),
                             });
                             break;
                         case "kak":
@@ -268,7 +336,7 @@ namespace Ladirvirelyl.Core
                             {
                                 Mnemonic = Mnemonic.DAL,
                                 Head = ToOperand(0),
-                                Tail = Convert(wordList[++i]),
+                                Tail = Convert(wordList[++i], fileCount),
                             });
                             break;
                         case "fi":
@@ -279,10 +347,10 @@ namespace Ladirvirelyl.Core
                             codeList.Add(new LkCode
                             {
                                 Mnemonic = mne,
-                                Head = Convert(head),
-                                Tail = Convert(tail),
+                                Head = Convert(head, fileCount),
+                                Tail = Convert(tail, fileCount),
                             });
-                            
+
                             break;
                         case "inj":
                             if (isCI)
@@ -301,9 +369,9 @@ namespace Ladirvirelyl.Core
                             codeList.Add(new LkCode
                             {
                                 Mnemonic = Mnemonic.INJ,
-                                Head = Convert(head),
-                                Middle = Convert(middle),
-                                Tail = Convert(tail),
+                                Head = Convert(head, fileCount),
+                                Middle = Convert(middle, fileCount),
+                                Tail = Convert(tail, fileCount),
                             });
 
                             break;
@@ -312,18 +380,7 @@ namespace Ladirvirelyl.Core
                     }
                 }
             }
-
-            foreach (var item in codeList)
-            {
-                codeList.ForEach(x =>
-                {
-                    if (x.IsLabel && !kuexok.ContainsKey(x.Label))
-                    {
-                        x.Label += "@"+ fileCount;
-                    }
-                });
-            }
-
+            
             if (isMain)
             {
                 codeList.Insert(0, new LkCode
@@ -353,7 +410,7 @@ namespace Ladirvirelyl.Core
         }
 
 
-        private Operand Convert(string str)
+        private Operand Convert(string str, int fileCount)
         {
             Operand ToRegisterOperand(Register reg)
             {
@@ -447,7 +504,14 @@ namespace Ladirvirelyl.Core
                 }
                 else
                 {
-                    result = ToOperand(str);
+                    if(kuexok.ContainsKey(str))
+                    {
+                        result = ToOperand(str);
+                    }
+                    else
+                    {
+                        result = ToOperand($"{str}@{fileCount}");
+                    }
                 }
             }
 

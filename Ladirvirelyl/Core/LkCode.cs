@@ -51,5 +51,25 @@ namespace Ladirvirelyl.Core
         {
             get => !string.IsNullOrEmpty(Label);
         }
+
+        public override string ToString()
+        {
+            var buf = new StringBuilder("{ ");
+
+            if(IsLabel)
+            {
+                buf.Append("LabelType: ").Append(LabelType)
+                .Append(", Label:").Append(Label);
+            }
+            else
+            {
+                buf.Append("Mnemonic: ").Append(Mnemonic)
+                .Append(", Head: ").Append(Head)
+                .Append(", Middle: ").Append(Middle)
+                .Append(", Tail: ").Append(Tail);
+            }
+
+            return buf.Append(" }").ToString();
+        }
     }
 }
