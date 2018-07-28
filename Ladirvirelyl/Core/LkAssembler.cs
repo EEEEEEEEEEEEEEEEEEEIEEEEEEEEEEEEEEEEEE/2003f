@@ -9,7 +9,7 @@ using System.IO;
 
 namespace Ladirvirelyl.Core
 {
-    class LkAssembler : DynamicAssembler
+    class LkAssembler : CodeGenerator
     {
         #region Constant
 

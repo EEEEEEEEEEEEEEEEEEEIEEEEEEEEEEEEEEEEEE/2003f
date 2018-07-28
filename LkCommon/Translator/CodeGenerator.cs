@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LkCommon.Translator
 {
-    public abstract class DynamicAssembler
+    public abstract class CodeGenerator
     {
         private IList<Code> codeList;
         private IDictionary<string, int> labels;
@@ -31,7 +31,7 @@ namespace LkCommon.Translator
         protected static readonly FiType XOLONYS = new FiType(Mnemonic.XOLONYS);
         protected static readonly FiType LLONYS = new FiType(Mnemonic.LLONYS);
 
-        protected DynamicAssembler()
+        protected CodeGenerator()
         {
             codeList = new List<Code>();
             labels = new Dictionary<string, int>();
