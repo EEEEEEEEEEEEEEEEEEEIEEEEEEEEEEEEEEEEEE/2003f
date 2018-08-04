@@ -10,8 +10,8 @@ namespace LkCommon.Translator
     public abstract class CodeGenerator
     {
         private IList<Code> codeList;
-        private IDictionary<string, int> labels;
-        private int count;
+        private IDictionary<string, uint> labels;
+        private uint codeCount;
 
         protected static readonly Operand F0 = new Operand(Register.F0);
         protected static readonly Operand F1 = new Operand(Register.F1);
@@ -34,8 +34,8 @@ namespace LkCommon.Translator
         protected CodeGenerator()
         {
             codeList = new List<Code>();
-            labels = new Dictionary<string, int>();
-            count = 0;
+            labels = new Dictionary<string, uint>();
+            codeCount = 0;
         }
 
 
@@ -57,8 +57,8 @@ namespace LkCommon.Translator
                         {
                             if(this.labels.ContainsKey(opd.Label))
                             {
-                                uint val = (uint)(LkConstant.DEFAULT_INITIAL_NX + this.labels[opd.Label]);
-                                opd.ModRm.DispImm = val;
+                                //Console.WriteLine("{0} {1:X} -> {2:X}", code.Mnemonic, opd.ModRm.DispImm, this.labels[opd.Label] - opd.ModRm.DispImm);
+                                opd.ModRm.DispImm = this.labels[opd.Label] - opd.ModRm.DispImm;
                             }
                             else
                             {
@@ -85,7 +85,7 @@ namespace LkCommon.Translator
 
         protected Operand ToOperand(string label, bool address = true)
         {
-            return new Operand(label);
+            return new Operand(label, address);
         }
 
         #region GeneratingMethod
@@ -107,7 +107,7 @@ namespace LkCommon.Translator
             }
 
             Code code = new Code();
-            //Console.WriteLine("{0:X4}: {1:X2} {2} {3} {4} {5}", count, (byte)mne, mne, opd1, opd2, opd3);
+            //Console.WriteLine("{0:X4}: {1:X2} {2} {3} {4} {5}", this.codeCount, (byte)mne, mne, opd1, opd2, opd3);
 
             if (!IsFi() && (opd2.IsLabel || opd2.IsImm))
             {
@@ -134,7 +134,6 @@ namespace LkCommon.Translator
 
             if(opd3 != null)
             {
-
                 code.Operands.Add(new CodeOperand
                 {
                     ModRm = ToModRm(opd3),
@@ -142,7 +141,16 @@ namespace LkCommon.Translator
                 });
             }
 
-            count += code.CodeLength;
+            this.codeCount += (uint)code.CodeLength;
+
+            foreach (var operand in code.Operands) {
+                if(operand.IsLabel && operand.ModRm.Mode == 6)
+                {
+                    operand.ModRm.DispImm = this.codeCount;
+                    //Console.WriteLine("{0:X} {1:X}", this.codeCount, operand.ModRm.DispImm);
+                }
+            }
+
             codeList.Add(code);
         }
 
@@ -185,7 +193,7 @@ namespace LkCommon.Translator
             {
                 modrm.Reg = (byte)Register.F0;
                 modrm.Mode = 6;
-                modrm.Disp32 = 0;
+                modrm.Disp32 = (uint)this.codeCount;
             }
             else if (opd.IsImm)
             {
@@ -254,14 +262,14 @@ namespace LkCommon.Translator
         /// <param name="name">ラベル名</param>
         protected void L(string name)
         {
-            int? count = this.codeList.LastOrDefault()?.CodeLength;
+            uint? count = (uint)this.codeList.LastOrDefault()?.CodeLength;
             if(count.HasValue)
             {
-                this.labels.Add(name, this.count - count.Value);
+                this.labels.Add(name, this.codeCount - count.Value);
             }
             else
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Not found operator");
             }
         }
         
@@ -271,7 +279,7 @@ namespace LkCommon.Translator
         /// <param name="name">ラベル名</param>
         protected void Nll(string name)
         {
-            this.labels.Add(name, this.count);
+            this.labels.Add(name, this.codeCount);
         }
 
         /// <summary>
@@ -470,7 +478,14 @@ namespace LkCommon.Translator
         /// <param name="opd2">オペランド</param>
         protected void Krz(Operand opd1, Operand opd2)
         {
-            Append(Mnemonic.KRZ, opd1, opd2);
+            if (opd2.Reg == Register.XX && opd1.IsLabel && opd1.IsAddress)
+            {
+                Append(Mnemonic.ATA, opd1, opd2);
+            }
+            else
+            {
+                Append(Mnemonic.KRZ, opd1, opd2);
+            }
         }
 
         /// <summary>
@@ -500,7 +515,17 @@ namespace LkCommon.Translator
         /// <param name="opd2">オペランド</param>
         protected void Malkrz(Operand opd1, Operand opd2)
         {
-            Append(Mnemonic.MALKRZ, opd1, opd2);
+            if (opd2.Reg == Register.XX && opd1.IsLabel && opd1.IsAddress)
+            {
+                Append(Mnemonic.KRZ, new Operand(15), Seti(F5 + 0xFFFFFFFC));
+                Append(Mnemonic.MALKRZ, opd1, Seti(F5 + 0xFFFFFFFC));
+                Append(Mnemonic.NTA, new Operand(15), Seti(F5 + 0xFFFFFFFC));
+                Append(Mnemonic.ATA, Seti(F5 + 0xFFFFFFFC), opd2);
+            }
+            else
+            {
+                Append(Mnemonic.MALKRZ, opd1, opd2);
+            }
         }
 
         /// <summary>
@@ -563,7 +588,16 @@ namespace LkCommon.Translator
         /// <param name="opd3">オペランド</param>
         protected void Inj(Operand opd1, Operand opd2, Operand opd3)
         {
-            Append(Mnemonic.INJ, opd1, opd2, opd3);
+            if(opd2.Reg == Register.XX && opd1.IsLabel && opd1.IsAddress)
+            {
+                Append(Mnemonic.KRZ, opd2, opd3);
+                Append(Mnemonic.ATA, new Operand(11), opd3);
+                Append(Mnemonic.ATA, opd1, opd2);
+            }
+            else
+            {
+                Append(Mnemonic.INJ, opd1, opd2, opd3);
+            }
         }
 
         /// <summary>

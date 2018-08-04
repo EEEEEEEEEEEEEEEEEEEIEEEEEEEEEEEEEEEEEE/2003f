@@ -81,6 +81,12 @@ namespace Ferlesyl.Core
         /// </summary>
         public bool ViewRegister { get; set; }
 
+        /// <summary>
+        /// スタックの内容を表示するかどうか．
+        /// ViewMemoryがtrueの場合には無視される
+        /// </summary>
+        public bool ViewStack { get; set; }
+
         #endregion
 
         /// <summary>
@@ -248,6 +254,14 @@ namespace Ferlesyl.Core
                 }
             }
 
+            if (ViewStack && !ViewMemory)
+            {
+                foreach (var item in this.memory.Binaries.Where(x => x.Key >= LkConstant.DEFAULT_INITIAL_F5).OrderBy(x => x.Key))
+                {
+                    Console.WriteLine("{0:X08}: {1:X02}", item.Key, item.Value);
+                }
+            }
+
             Console.WriteLine("[{0}]", string.Join(",", this.debugBuffer));
         }
 
@@ -410,11 +424,11 @@ namespace Ferlesyl.Core
             GetModRm(out first);
             GetModRm(out second);
 
-            if(flags)
+            if(this.flags)
             {
                 uint val = GetValue(first);
                 SetValue(second, val);
-                flags = false;
+                this.flags = false;
             }
         }
 

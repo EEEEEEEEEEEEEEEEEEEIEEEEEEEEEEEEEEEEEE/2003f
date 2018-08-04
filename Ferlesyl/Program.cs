@@ -33,6 +33,9 @@ namespace Ferlesyl
                     case "--memory":
                         emulator.ViewMemory = true;
                         break;
+                    case "--stack":
+                        emulator.ViewStack = true;
+                        break;
                     default:
                         fileName = arg;
                         break;
