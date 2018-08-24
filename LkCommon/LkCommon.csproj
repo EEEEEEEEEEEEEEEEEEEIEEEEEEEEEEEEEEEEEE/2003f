@@ -40,6 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Processor\Emulator.cs" />
+    <Compile Include="Processor\Memory.cs" />
     <Compile Include="Translator\Code.cs" />
     <Compile Include="Translator\CodeGenerator.cs" />
     <Compile Include="Translator\FiType.cs" />
@@ -50,8 +52,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Register.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Processor\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

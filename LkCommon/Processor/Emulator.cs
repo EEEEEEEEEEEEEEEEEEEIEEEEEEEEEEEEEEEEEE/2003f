@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using LkCommon;
 
-namespace Ferlesyl.Core
+namespace LkCommon.Processor
 {
-    class Emulator
+    public class Emulator
     {
         #region Constants
 
@@ -33,7 +32,7 @@ namespace Ferlesyl.Core
         /// <summary>
         /// デバッグ用出力アドレス
         /// </summary>
-        private static readonly uint TVARLON_KNLOAN_ADDRESS = 3126834864;
+        private static readonly uint TVARLON_KNLOAN_ADDRESS = LkConstant.TVARLON_KNLOAN_ADDRESS;
 
         #endregion
 
@@ -98,7 +97,9 @@ namespace Ferlesyl.Core
                 [Register.F1] = 0,
                 [Register.F2] = 0,
                 [Register.F3] = 0,
+                [Register.F4] = 0,
                 [Register.F5] = DEFAULT_INITIAL_F5,
+                [Register.F6] = 0,
                 [Register.XX] = DEFAULT_INITIAL_NX,
             };
 
@@ -227,6 +228,8 @@ namespace Ferlesyl.Core
                         throw new NotImplementedException($"Not Implemented: {code:X}");
                 }
                 #endregion
+
+                this.flags = false;
             }
 
             if (ViewRegister)
@@ -258,9 +261,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Ata()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             uint val = GetValue(second) + GetValue(first);
             SetValue(second, val);
@@ -271,9 +273,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Nta()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             uint val = GetValue(second) - GetValue(first);
             SetValue(second, val);
@@ -284,9 +285,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Ada()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             uint val = GetValue(second) & GetValue(first);
             SetValue(second, val);
@@ -297,9 +297,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Ekc()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             uint val = GetValue(second) | GetValue(first);
             SetValue(second, val);
@@ -310,9 +309,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Dto()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             int shift = (int)GetValue(first);
             uint val;
@@ -333,9 +331,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Dro()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             int shift = (int)GetValue(first);
             uint val;
@@ -357,9 +354,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Dtosna()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             int shift = (int)GetValue(first);
             uint val;
@@ -380,9 +376,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Dal()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             uint val = ~(GetValue(second) ^ GetValue(first));
             SetValue(second, val);
@@ -393,9 +388,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Krz()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             uint val = GetValue(first);
             SetValue(second, val);
@@ -406,11 +400,10 @@ namespace Ferlesyl.Core
         /// </summary>
         void Malkrz()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
-            if(flags)
+            if (flags)
             {
                 uint val = GetValue(first);
                 SetValue(second, val);
@@ -423,9 +416,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Llonys()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             this.flags = GetValue(first) > GetValue(second);
         }
@@ -435,9 +427,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Xtlonys()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             this.flags = GetValue(first) <= GetValue(second);
         }
@@ -447,9 +438,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Xolonys()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             this.flags = GetValue(first) >= GetValue(second);
         }
@@ -459,9 +449,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Xylonys()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             this.flags = GetValue(first) < GetValue(second);
         }
@@ -471,9 +460,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Clo()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             this.flags = GetValue(first) == GetValue(second);
         }
@@ -483,9 +471,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Niv()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             this.flags = GetValue(first) != GetValue(second);
         }
@@ -495,9 +482,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Llo()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             this.flags = (int)GetValue(first) > (int)GetValue(second);
         }
@@ -507,9 +493,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Xtlo()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             this.flags = (int)GetValue(first) <= (int)GetValue(second);
         }
@@ -519,9 +504,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Xolo()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             this.flags = (int)GetValue(first) >= (int)GetValue(second);
         }
@@ -531,9 +515,8 @@ namespace Ferlesyl.Core
         /// </summary>
         void Xylo()
         {
-            ModRm first, second;
-            GetModRm(out first);
-            GetModRm(out second);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
 
             this.flags = (int)GetValue(first) < (int)GetValue(second);
         }
@@ -543,10 +526,9 @@ namespace Ferlesyl.Core
         /// </summary>
         void Inj()
         {
-            ModRm first, second, third;
-            GetModRm(out first);
-            GetModRm(out second);
-            GetModRm(out third);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
+            GetModRm(out ModRm third);
 
             uint val1 = GetValue(first);
             uint val2 = GetValue(second);
@@ -559,10 +541,9 @@ namespace Ferlesyl.Core
         /// </summary>
         void Lat()
         {
-            ModRm first, second, third;
-            GetModRm(out first);
-            GetModRm(out second);
-            GetModRm(out third);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
+            GetModRm(out ModRm third);
 
             ulong val1 = (ulong)GetValue(second) * GetValue(first);
             SetValue(third, (uint)(val1 >> 32));
@@ -574,10 +555,9 @@ namespace Ferlesyl.Core
         /// </summary>
         void Latsna()
         {
-            ModRm first, second, third;
-            GetModRm(out first);
-            GetModRm(out second);
-            GetModRm(out third);
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
+            GetModRm(out ModRm third);
 
             long val = GetValue(second);
 
