@@ -228,8 +228,6 @@ namespace LkCommon.Processor
                         throw new NotImplementedException($"Not Implemented: {code:X}");
                 }
                 #endregion
-
-                this.flags = false;
             }
 
             if (ViewRegister)
@@ -683,6 +681,8 @@ namespace LkCommon.Processor
                 default:
                     throw new NotImplementedException($"Not Implemented: Reg: {modrm.Reg:X01}, Mode: {modrm.Mode:X02}");
             }
+
+            this.flags = false;
         }
 
         #endregion
