@@ -708,9 +708,7 @@ namespace LkCommon.Processor
                 case 0x0:
                     return (byte)(this.registers[(Register)modrm.Reg] >> 24);
                 case 0x4:
-                    return modrm.Imm8;
                 case 0x5:
-                    return (byte)(modrm.Imm16 >> 8);
                 case 0x6:
                     return (byte)(modrm.Imm32 >> 24);
                 case 0x10:
@@ -745,9 +743,7 @@ namespace LkCommon.Processor
                 case 0x0:
                     return (ushort)(this.registers[(Register)modrm.Reg] >> 16);
                 case 0x4:
-                    return (ushort)modrm.Imm8;
                 case 0x5:
-                    return modrm.Imm16;
                 case 0x6:
                     return (ushort)(modrm.Imm32 >> 16);
                 case 0x10:
