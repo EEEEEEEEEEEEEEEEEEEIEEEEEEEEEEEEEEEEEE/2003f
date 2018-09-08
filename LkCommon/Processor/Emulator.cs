@@ -137,119 +137,159 @@ namespace LkCommon.Processor
         /// </summary>
         public void Run()
         {
-            while (this.registers[Register.XX] != DEFAULT_RETURN_ADDRESS)
+            try
             {
-                if (this.registers[Register.XX] == TVARLON_KNLOAN_ADDRESS)
+                while (this.registers[Register.XX] != DEFAULT_RETURN_ADDRESS)
                 {
-                    debugBuffer.Add(this.memory.GetValue32(this.registers[Register.F5] + 4).ToString());
-                    this.registers[Register.XX] = this.memory.GetValue32(this.registers[Register.F5]);
-
-                    continue;
-                }
-
-                byte code = this.memory.GetValue8(this.registers[Register.XX]);
-                //Console.WriteLine("nx = {0:X08}, code = {1:X02}", this.registers[Register.XX], code);
-
-                this.registers[Register.XX] += 1;
-
-                #region コード分岐
-                switch (code)
-                {
-                    case 0x00:
-                        Ata();
-                        break;
-                    case 0x01:
-                        Nta();
-                        break;
-                    case 0x02:
-                        Ada();
-                        break;
-                    case 0x03:
-                        Ekc();
-                        break;
-                    case 0x04:
-                        Dto();
-                        break;
-                    case 0x05:
-                        Dro();
-                        break;
-                    case 0x06:
-                        Dtosna();
-                        break;
-                    case 0x07:
-                        Dal();
-                        break;
-                    case 0x08:
-                        Krz();
-                        break;
-                    case 0x09:
-                        Malkrz();
-                        break;
-                    case 0x10:
-                        Llonys();
-                        break;
-                    case 0x11:
-                        Xtlonys();
-                        break;
-                    case 0x12:
-                        Xolonys();
-                        break;
-                    case 0x13:
-                        Xylonys();
-                        break;
-                    case 0x16:
-                        Clo();
-                        break;
-                    case 0x17:
-                        Niv();
-                        break;
-                    case 0x18:
-                        Llo();
-                        break;
-                    case 0x19:
-                        Xtlo();
-                        break;
-                    case 0x1A:
-                        Xolo();
-                        break;
-                    case 0x1B:
-                        Xylo();
-                        break;
-                    case 0x20:
-                        Inj();
-                        break;
-                    case 0x28:
-                        Lat();
-                        break;
-                    case 0x29:
-                        Latsna();
-                        break;
-                    default:
-                        throw new NotImplementedException($"Not Implemented: {code:X}");
-                }
-                #endregion
-            }
-
-            if (ViewRegister)
-            {
-                for (int i = 0; i < this.registers.Count; i++)
-                {
-                    if (this.registers.ContainsKey((Register)i))
+                    if (this.registers[Register.XX] == TVARLON_KNLOAN_ADDRESS)
                     {
-                        Console.WriteLine("{0} = {1:X08}", (Register)i, this.registers[(Register)i]);
+                        debugBuffer.Add(this.memory.GetValue32(this.registers[Register.F5] + 4).ToString());
+                        this.registers[Register.XX] = this.memory.GetValue32(this.registers[Register.F5]);
+
+                        continue;
+                    }
+
+                    Mnemonic code = (Mnemonic)this.memory.GetValue8(this.registers[Register.XX]);
+                    //Console.WriteLine("nx = {0:X08}, code = {1:X02}", this.registers[Register.XX], code);
+
+                    this.registers[Register.XX] += 1;
+
+                    #region コード分岐
+                    switch (code)
+                    {
+                        case Mnemonic.ATA:
+                            Ata();
+                            break;
+                        case Mnemonic.NTA:
+                            Nta();
+                            break;
+                        case Mnemonic.ADA:
+                            Ada();
+                            break;
+                        case Mnemonic.EKC:
+                            Ekc();
+                            break;
+                        case Mnemonic.DTO:
+                            Dto();
+                            break;
+                        case Mnemonic.DRO:
+                            Dro();
+                            break;
+                        case Mnemonic.DTOSNA:
+                            Dtosna();
+                            break;
+                        case Mnemonic.DAL:
+                            Dal();
+                            break;
+                        case Mnemonic.KRZ:
+                            Krz();
+                            break;
+                        case Mnemonic.MALKRZ:
+                            Malkrz();
+                            break;
+                        case Mnemonic.KRZ8I:
+                            Krz8i();
+                            break;
+                        case Mnemonic.KRZ16I:
+                            Krz16i();
+                            break;
+                        case Mnemonic.KRZ8C:
+                            Krz8c();
+                            break;
+                        case Mnemonic.KRZ16C:
+                            Krz16c();
+                            break;
+                        case Mnemonic.LLONYS:
+                            Llonys();
+                            break;
+                        case Mnemonic.XTLONYS:
+                            Xtlonys();
+                            break;
+                        case Mnemonic.XOLONYS:
+                            Xolonys();
+                            break;
+                        case Mnemonic.XYLONYS:
+                            Xylonys();
+                            break;
+                        case Mnemonic.CLO:
+                            Clo();
+                            break;
+                        case Mnemonic.NIV:
+                            Niv();
+                            break;
+                        case Mnemonic.LLO:
+                            Llo();
+                            break;
+                        case Mnemonic.XTLO:
+                            Xtlo();
+                            break;
+                        case Mnemonic.XOLO:
+                            Xolo();
+                            break;
+                        case Mnemonic.XYLO:
+                            Xylo();
+                            break;
+                        case Mnemonic.INJ:
+                            Inj();
+                            break;
+                        case Mnemonic.LAT:
+                            Lat();
+                            break;
+                        case Mnemonic.LATSNA:
+                            Latsna();
+                            break;
+                        default:
+                            throw new NotImplementedException($"Not Implemented: {code:X}");
+                    }
+                    #endregion
+                }
+
+                if (ViewRegister)
+                {
+                    for (int i = 0; i < this.registers.Count; i++)
+                    {
+                        if (this.registers.ContainsKey((Register)i))
+                        {
+                            Console.WriteLine("{0} = {1:X08}", (Register)i, this.registers[(Register)i]);
+                        }
                     }
                 }
-            }
 
-            if (ViewMemory)
-            {
-                foreach (var item in this.memory.Binaries.OrderBy(x => x.Key))
+                if (ViewMemory)
                 {
-                    Console.WriteLine("{0:X08}: {1:X02}", item.Key, item.Value);
+                    foreach (var item in this.memory.Binaries.OrderBy(x => x.Key))
+                    {
+                        Console.WriteLine("{0:X08}: {1:X02}", item.Key, item.Value);
+                    }
                 }
-            }
 
-            Console.WriteLine("[{0}]", string.Join(",", this.debugBuffer));
+                Console.WriteLine("[{0}]", string.Join(",", this.debugBuffer));
+            }
+            catch (Exception ex)
+            {
+                if (ViewRegister)
+                {
+                    for (int i = 0; i < this.registers.Count; i++)
+                    {
+                        if (this.registers.ContainsKey((Register)i))
+                        {
+                            Console.WriteLine("{0} = {1:X08}", (Register)i, this.registers[(Register)i]);
+                        }
+                    }
+                }
+
+                if (ViewMemory)
+                {
+                    foreach (var item in this.memory.Binaries.OrderBy(x => x.Key))
+                    {
+                        Console.WriteLine("{0:X08}: {1:X02}", item.Key, item.Value);
+                    }
+                }
+
+                Console.WriteLine("[{0}]", string.Join(",", this.debugBuffer));
+
+                throw new Exception("Emulator error", ex);
+            }
         }
 
         #region Operators
@@ -407,6 +447,54 @@ namespace LkCommon.Processor
                 SetValue(second, val);
                 flags = false;
             }
+        }
+
+        /// <summary>
+        /// krz8iの処理を行います．
+        /// </summary>
+        void Krz8i()
+        {
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
+            
+            int val = GetValue8Top(first);
+            SetValue(second, (uint)((val << 24) >> 24));
+        }
+
+        /// <summary>
+        /// krz16iの処理を行います．
+        /// </summary>
+        void Krz16i()
+        {
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
+
+            int val = GetValue16Top(first);
+            SetValue(second, (uint)((val << 16) >> 16));
+        }
+
+        /// <summary>
+        /// krz8cの処理を行います．
+        /// </summary>
+        void Krz8c()
+        {
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
+
+            uint val = GetValue(first);
+            SetValue8Top(second, val);
+        }
+
+        /// <summary>
+        /// krz16cの処理を行います．
+        /// </summary>
+        void Krz16c()
+        {
+            GetModRm(out ModRm first);
+            GetModRm(out ModRm second);
+
+            uint val = GetValue(first);
+            SetValue16Top(second, val);
         }
 
         /// <summary>
@@ -613,6 +701,80 @@ namespace LkCommon.Processor
         /// </summary>
         /// <param name="modrm">ModRM</param>
         /// <returns>取得した値</returns>
+        byte GetValue8Top(ModRm modrm)
+        {
+            switch (modrm.Mode)
+            {
+                case 0x0:
+                    return (byte)(this.registers[(Register)modrm.Reg] >> 24);
+                case 0x4:
+                    return modrm.Imm8;
+                case 0x5:
+                    return (byte)(modrm.Imm16 >> 8);
+                case 0x6:
+                    return (byte)(modrm.Imm32 >> 24);
+                case 0x10:
+                    return this.memory.GetValue8(this.registers[(Register)modrm.Reg]);
+                case 0x14:
+                    return this.memory.GetValue8((uint)(this.registers[(Register)modrm.Reg] + modrm.Disp8));
+                case 0x15:
+                    return this.memory.GetValue8((uint)(this.registers[(Register)modrm.Reg] + modrm.Disp16));
+                case 0x16:
+                    return this.memory.GetValue8((uint)(this.registers[(Register)modrm.Reg] + modrm.Disp32));
+                case 0x18:
+                case 0x19:
+                case 0x1A:
+                case 0x1B:
+                case 0x1D:
+                case 0x1F:
+                    return this.memory.GetValue8(this.registers[(Register)modrm.Reg] + this.registers[(Register)(modrm.Mode & 0x7U)]);
+                default:
+                    throw new NotImplementedException($"Not Implemented: Reg: {modrm.Reg:X03}, Mode: {modrm.Mode:X05}");
+            }
+        }
+
+        /// <summary>
+        /// ModRMを元に値を取得します．
+        /// </summary>
+        /// <param name="modrm">ModRM</param>
+        /// <returns>取得した値</returns>
+        ushort GetValue16Top(ModRm modrm)
+        {
+            switch (modrm.Mode)
+            {
+                case 0x0:
+                    return (ushort)(this.registers[(Register)modrm.Reg] >> 16);
+                case 0x4:
+                    return (ushort)modrm.Imm8;
+                case 0x5:
+                    return modrm.Imm16;
+                case 0x6:
+                    return (ushort)(modrm.Imm32 >> 16);
+                case 0x10:
+                    return this.memory.GetValue16(this.registers[(Register)modrm.Reg]);
+                case 0x14:
+                    return this.memory.GetValue16((uint)(this.registers[(Register)modrm.Reg] + modrm.Disp8));
+                case 0x15:
+                    return this.memory.GetValue16((uint)(this.registers[(Register)modrm.Reg] + modrm.Disp16));
+                case 0x16:
+                    return this.memory.GetValue16((uint)(this.registers[(Register)modrm.Reg] + modrm.Disp32));
+                case 0x18:
+                case 0x19:
+                case 0x1A:
+                case 0x1B:
+                case 0x1D:
+                case 0x1F:
+                    return this.memory.GetValue16(this.registers[(Register)modrm.Reg] + this.registers[(Register)(modrm.Mode & 0x7U)]);
+                default:
+                    throw new NotImplementedException($"Not Implemented: Reg: {modrm.Reg:X03}, Mode: {modrm.Mode:X05}");
+            }
+        }
+
+        /// <summary>
+        /// ModRMを元に値を取得します．
+        /// </summary>
+        /// <param name="modrm">ModRM</param>
+        /// <returns>取得した値</returns>
         uint GetValue(ModRm modrm)
         {
             switch (modrm.Mode)
@@ -643,6 +805,88 @@ namespace LkCommon.Processor
                 default:
                     throw new NotImplementedException($"Not Implemented: Reg: {modrm.Reg:X03}, Mode: {modrm.Mode:X05}");
             }
+        }
+
+        /// <summary>
+        /// ModRMを元に値を設定します．
+        /// </summary>
+        /// <param name="modrm">ModRM</param>
+        /// <param name="value">設定する値</param>
+        void SetValue8Top(ModRm modrm, uint value)
+        {
+            switch (modrm.Mode)
+            {
+                case 0x0:
+                    this.registers[(Register)modrm.Reg] &= 0x00ffffff;
+                    this.registers[(Register)modrm.Reg] |= value << 24;
+                    break;
+                case 0x10:
+                    this.memory.SetValue8(this.registers[(Register)modrm.Reg], (byte)value);
+                    break;
+                case 0x14:
+                    this.memory.SetValue8((uint)(this.registers[(Register)modrm.Reg] + modrm.Disp8), (byte)value);
+                    break;
+                case 0x15:
+                    this.memory.SetValue8((uint)(this.registers[(Register)modrm.Reg] + modrm.Disp16), (byte)value);
+                    break;
+                case 0x16:
+                    this.memory.SetValue8(this.registers[(Register)modrm.Reg] + modrm.Disp32, (byte)value);
+                    break;
+                case 0x18:
+                case 0x19:
+                case 0x1A:
+                case 0x1B:
+                case 0x1D:
+                case 0x1F:
+                    this.memory.SetValue8(this.registers[(Register)modrm.Reg]
+                        + this.registers[(Register)(modrm.Mode & 0x7U)], (byte)value);
+                    break;
+                default:
+                    throw new NotImplementedException($"Not Implemented: Reg: {modrm.Reg:X01}, Mode: {modrm.Mode:X02}");
+            }
+
+            this.flags = false;
+        }
+
+        /// <summary>
+        /// ModRMを元に値を設定します．
+        /// </summary>
+        /// <param name="modrm">ModRM</param>
+        /// <param name="value">設定する値</param>
+        void SetValue16Top(ModRm modrm, uint value)
+        {
+            switch (modrm.Mode)
+            {
+                case 0x0:
+                    this.registers[(Register)modrm.Reg] &= 0x0000ffff;
+                    this.registers[(Register)modrm.Reg] |= value << 16;
+                    break;
+                case 0x10:
+                    this.memory.SetValue16(this.registers[(Register)modrm.Reg], (ushort)value);
+                    break;
+                case 0x14:
+                    this.memory.SetValue16((uint)(this.registers[(Register)modrm.Reg] + modrm.Disp8), (ushort)value);
+                    break;
+                case 0x15:
+                    this.memory.SetValue16((uint)(this.registers[(Register)modrm.Reg] + modrm.Disp16), (ushort)value);
+                    break;
+                case 0x16:
+                    this.memory.SetValue16(this.registers[(Register)modrm.Reg] + modrm.Disp32, (ushort)value);
+                    break;
+                case 0x18:
+                case 0x19:
+                case 0x1A:
+                case 0x1B:
+                case 0x1D:
+                case 0x1F:
+                    this.memory.SetValue16(this.registers[(Register)modrm.Reg]
+                        + this.registers[(Register)(modrm.Mode & 0x7U)], (byte)value);
+                    break;
+                default:
+                    throw new NotImplementedException($"Not Implemented: Reg: {modrm.Reg:X01}, Mode: {modrm.Mode:X02}");
+            }
+
+            this.flags = false;
         }
 
         /// <summary>

@@ -61,6 +61,11 @@ namespace LkCommon
         /// </summary>
         MALKRZ = 0x09,
 
+        KRZ8I,
+        KRZ16I,
+        KRZ8C,
+        KRZ16C,
+
         /// <summary>
         /// 超過ならフラグを立てる(符号無し比較)
         /// </summary>

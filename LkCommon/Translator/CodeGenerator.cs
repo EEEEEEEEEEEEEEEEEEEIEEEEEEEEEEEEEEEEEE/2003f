@@ -504,6 +504,86 @@ namespace LkCommon.Translator
         }
 
         /// <summary>
+        /// krz8iを表すメソッドです．
+        /// </summary>
+        /// <param name="value">オペランド</param>
+        /// <param name="opd2">オペランド</param>
+        protected void Krz8i(uint value, Operand opd)
+        {
+            Krz8i(ToOperand(value), opd);
+        }
+
+        /// <summary>
+        /// krz8iを表すメソッドです．
+        /// </summary>
+        /// <param name="opd1">オペランド</param>
+        /// <param name="opd2">オペランド</param>
+        protected void Krz8i(Operand opd1, Operand opd2)
+        {
+            Append(Mnemonic.KRZ8I, opd1, opd2);
+        }
+
+        /// <summary>
+        /// krz16iを表すメソッドです．
+        /// </summary>
+        /// <param name="value">オペランド</param>
+        /// <param name="opd2">オペランド</param>
+        protected void Krz16i(uint value, Operand opd)
+        {
+            Krz16i(ToOperand(value), opd);
+        }
+
+        /// <summary>
+        /// krz16iを表すメソッドです．
+        /// </summary>
+        /// <param name="opd1">オペランド</param>
+        /// <param name="opd2">オペランド</param>
+        protected void Krz16i(Operand opd1, Operand opd2)
+        {
+            Append(Mnemonic.KRZ16I, opd1, opd2);
+        }
+
+        /// <summary>
+        /// krz8cを表すメソッドです．
+        /// </summary>
+        /// <param name="value">オペランド</param>
+        /// <param name="opd2">オペランド</param>
+        protected void Krz8c(uint value, Operand opd)
+        {
+            Krz8c(ToOperand(value), opd);
+        }
+
+        /// <summary>
+        /// krz8cを表すメソッドです．
+        /// </summary>
+        /// <param name="opd1">オペランド</param>
+        /// <param name="opd2">オペランド</param>
+        protected void Krz8c(Operand opd1, Operand opd2)
+        {
+            Append(Mnemonic.KRZ8C, opd1, opd2);
+        }
+
+        /// <summary>
+        /// krz16cを表すメソッドです．
+        /// </summary>
+        /// <param name="value">オペランド</param>
+        /// <param name="opd2">オペランド</param>
+        protected void Krz16c(uint value, Operand opd)
+        {
+            Krz16c(ToOperand(value), opd);
+        }
+
+        /// <summary>
+        /// krz16cを表すメソッドです．
+        /// </summary>
+        /// <param name="opd1">オペランド</param>
+        /// <param name="opd2">オペランド</param>
+        protected void Krz16c(Operand opd1, Operand opd2)
+        {
+            Append(Mnemonic.KRZ16C, opd1, opd2);
+        }
+
+        /// <summary>
         /// fi系を表すメソッドです．
         /// </summary>
         /// <param name="val">即値</param>

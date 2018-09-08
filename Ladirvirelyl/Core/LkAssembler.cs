@@ -297,6 +297,14 @@ namespace Ladirvirelyl.Core
                         case "dRo":
                         case "malkrz":
                         case "malkRz":
+                        case "krz8i":
+                        case "kRz8i":
+                        case "krz16i":
+                        case "kRz16i":
+                        case "krz8c":
+                        case "kRz8c":
+                        case "krz16c":
+                        case "kRz16c":
                             (head, tail, i) = GetParam(wordList, isCI, i);
 
                             codeList.Add(new LkCode
@@ -580,6 +588,18 @@ namespace Ladirvirelyl.Core
                             break;
                         case Mnemonic.MALKRZ:
                             Malkrz(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.KRZ8I:
+                            Krz8i(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.KRZ16I:
+                            Krz16i(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.KRZ8C:
+                            Krz8c(code.Head, code.Tail);
+                            break;
+                        case Mnemonic.KRZ16C:
+                            Krz16c(code.Head, code.Tail);
                             break;
                         case Mnemonic.LLONYS:
                             Fi(code.Head, code.Tail, LLONYS);
